@@ -13,3 +13,8 @@ Future<String?> getJwt() async {
   final storage = new FlutterSecureStorage();
   return storage.read(key: StoreKeys.jwt);
 }
+
+Future deleteAll() {
+  final storage = new FlutterSecureStorage();
+  return storage.deleteAll();
+}

@@ -1,11 +1,10 @@
-import 'package:fitness_logger_app/fl_api/fl_api.dart';
-import 'package:fitness_logger_app/fl_secure_storage/fl_secure_storage.dart';
+import 'package:fitness_logger_app/services/fl_api.dart';
+import 'package:fitness_logger_app/services/fl_secure_storage.dart';
 import 'package:fitness_logger_app/helper_funcs/validators.dart';
 import 'package:fitness_logger_app/models/user.dart';
 import 'package:fitness_logger_app/widgets/fl_forms.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fitness_logger_app/fl_secure_storage/fl_secure_storage.dart';
 
 class FlLoginPage extends StatelessWidget {
   @override
@@ -56,8 +55,8 @@ class FlLoginFormState extends State<FlLoginForm> {
               ? 'Logged in'
               : 'Wrong password or email'),
         ));
-        
-        if (loginAtt.statusCode == 200){
+
+        if (loginAtt.statusCode == 200) {
           Navigator.of(context).pushReplacementNamed('/jwt');
         }
       } catch (err) {
@@ -105,6 +104,11 @@ class FlLoginFormState extends State<FlLoginForm> {
           _buildEmailField(context),
           _buildPasswordField(context),
           _buildSubmitButton(context),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushReplacementNamed('/jwt');
+              },
+              child: Text('jwt page')),
         ],
       ),
     );
