@@ -1,9 +1,11 @@
-import 'package:fitness_logger_app/services/fl_secure_storage.dart';
-import 'package:fitness_logger_app/main.dart';
+import 'package:fitness_logger_app/pages/types/fl_create_type_page.dart';
+import 'package:fitness_logger_app/pages/fl_home_page.dart';
+import 'package:fitness_logger_app/pages/fl_root_page.dart';
 import 'package:fitness_logger_app/pages/fl_jwt_page.dart';
-import 'package:fitness_logger_app/pages/fl_login_page.dart';
+import 'package:fitness_logger_app/pages/types/fl_types_list_page.dart';
 import 'package:flutter/material.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
 
 class RouterGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -11,29 +13,18 @@ class RouterGenerator {
 
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => FlRoot());
+        return MaterialPageRoute(builder: (_) => FlRootPage());
       case '/jwt':
         return MaterialPageRoute(builder: (_) => JwtPage());
+      case '/home':
+        return MaterialPageRoute(builder: (_) => FlHomePage());
+      case '/types':
+        return MaterialPageRoute(builder: (_) => FlTypesListPage());
+      case '/types/create':
+        return MaterialPageRoute(builder: (_) => FlCreateTypePage());
       default:
         return _errorRoute();
     }
-  }
-
-  // static Route<dynamic> authGuard() async{
-  //   final jwt = await getJwt();
-  //   return MaterialPageRoute(builder: (_){
-  //     return FlLoginPage();
-  //   });
-  // }
-  
-  static FutureBuilder<String?> authGuard(MaterialPageRoute page){
-    return FutureBuilder(
-      future: getJwt(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.data.isEmpty) return page;
-        return FlLoginPage();
-      },
-    );
   }
 
   static Route<dynamic> _errorRoute() {

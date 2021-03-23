@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
-Widget flFormField(BuildContext context,
-    {String? label,
-    IconButton? suffixIcn,
-    Function? validateClb,
-    Function? saveClb,
-    bool isPassword = false}) {
+Widget flFormField(
+  BuildContext context, {
+  String? label,
+  IconButton? suffixIcn,
+  Function? validateClb,
+  Function? saveClb,
+  bool isPassword = false,
+  String? initialValue,
+}) {
   bool _visibility = isPassword;
   return TextFormField(
+    initialValue: initialValue,
     cursorColor: TextSelectionTheme.of(context).cursorColor,
     maxLength: 255,
     obscureText: _visibility,
@@ -18,6 +22,7 @@ Widget flFormField(BuildContext context,
       suffixIcon: suffixIcn,
       enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(color: Color(0xFF6200EE)),
+        // borderSide: BorderSide(color: ThemeData.,
       ),
     ),
   );

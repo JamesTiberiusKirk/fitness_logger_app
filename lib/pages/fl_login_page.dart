@@ -1,5 +1,4 @@
-import 'package:fitness_logger_app/services/fl_api.dart';
-import 'package:fitness_logger_app/services/fl_secure_storage.dart';
+import 'package:fitness_logger_app/services/auth_service.dart';
 import 'package:fitness_logger_app/helper_funcs/validators.dart';
 import 'package:fitness_logger_app/models/user.dart';
 import 'package:fitness_logger_app/widgets/fl_forms.dart';
@@ -31,6 +30,21 @@ class FlLoginFormState extends State<FlLoginForm> {
   String? _email;
   String? _password;
 
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          _buildEmailField(context),
+          _buildPasswordField(context),
+          _buildSubmitButton(context),
+        ],
+      ),
+    );
+  }
+
   void _saveEmail(String? value) => _email = value;
   void _savePassword(String? value) => _password = value;
 
@@ -41,23 +55,17 @@ class FlLoginFormState extends State<FlLoginForm> {
       c.showSnackBar(SnackBar(content: Text('Logging in')));
       _formKey.currentState!.save();
       try {
-        final loginAtt =
-            await Provider.of<FlAuthService>(context, listen: false)
-                .login(new User(_email as String, _password as String));
-
-        if (loginAtt.statusCode == 200) {
-          storeJwt(loginAtt.body['jwt']);
-        }
+        User user = User(_email!, _password!);
+        bool loginAtt =
+            await Provider.of<AuthService>(context, listen: false).login(user);
 
         c.hideCurrentSnackBar();
         c.showSnackBar(SnackBar(
-          content: Text((loginAtt.statusCode == 200)
-              ? 'Logged in'
-              : 'Wrong password or email'),
+          content: Text((loginAtt) ? 'Logged in' : 'Wrong password or email'),
         ));
 
-        if (loginAtt.statusCode == 200) {
-          Navigator.of(context).pushReplacementNamed('/jwt');
+        if (loginAtt) {
+          Navigator.of(context).pushReplacementNamed('/home');
         }
       } catch (err) {
         c.hideCurrentSnackBar();
@@ -95,22 +103,4 @@ class FlLoginFormState extends State<FlLoginForm> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: <Widget>[
-          _buildEmailField(context),
-          _buildPasswordField(context),
-          _buildSubmitButton(context),
-          ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacementNamed('/jwt');
-              },
-              child: Text('jwt page')),
-        ],
-      ),
-    );
-  }
 }

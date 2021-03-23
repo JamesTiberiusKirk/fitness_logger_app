@@ -1,3 +1,4 @@
+import 'package:fitness_logger_app/services/auth_service.dart';
 import 'package:fitness_logger_app/services/fl_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -42,15 +43,9 @@ class JwtPageState extends State<JwtPage> {
               ),
               ElevatedButton(
                   onPressed: () async {
-                    await deleteAll();
+                    await AuthService.deleteAll();
                   },
-                  child: Text('delete')),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacementNamed('/');
-                },
-                child: Text('Home'),
-              ),
+                  child: Text('Logout')),
             ],
           ),
         ),

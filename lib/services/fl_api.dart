@@ -1,46 +1,16 @@
-import 'dart:convert';
+import 'dart:async';
 import 'package:chopper/chopper.dart';
-import 'package:fitness_logger_app/fl_secure_storage/fl_secure_storage.dart';
 import 'package:fitness_logger_app/models/user.dart';
-import 'package:http/http.dart' as http;
+import 'package:fitness_logger_app/router_generator.dart';
+import 'package:fitness_logger_app/services/auth_service.dart';
+import 'package:fitness_logger_app/models/fl_type.dart';
 
 part 'fl_api.chopper.dart';
 
-// final String serverHost = 'localhost:80';
-// const String serverHost = '192.168.100.24:80';
-const String serverHost = 'http://api.logger.fitness';
-
-class UriPaths {
-  static const String login = '/auth/login';
-  static const String register = '/auth/register';
-  static const String verifyMe = '/auth/verify_me';
-}
-
-Future<bool> flLogin(User user) async {
-  var res = await http.post(Uri.http(serverHost, UriPaths.login),
-      body: user.toJson(), encoding: Encoding.getByName('application/json'));
-
-  if (res.statusCode == 200) {
-    var resBody = json.decode(res.body);
-    await storeJwt(resBody['jwt']);
-    print(resBody['jwt']);
-    print('jwt added');
-    return true;
-  }
-  return false;
-}
-
-Future<bool> flRegister(UserRegistration userReg) async {
-  var res = await http.post(Uri.http(serverHost, UriPaths.register),
-      body: userReg.toJson(), encoding: Encoding.getByName('application/json'));
-  if (res.statusCode == 200) return true;
-  return false;
-}
-
+const String baseUrl = 'http://api.logger.fitness:80';
 
 @ChopperApi(baseUrl: '/auth')
-abstract class FlAuthService extends ChopperService {
-
+abstract class FlAuthApiService extends ChopperService {
   @Post(path: '/login')
   Future<Response> login(@Body() User user);
 
@@ -50,20 +20,80 @@ abstract class FlAuthService extends ChopperService {
   @Post(path: '/verify_me')
   Future<Response> vefiryMe(@Body() Map<String, String> jwt);
 
-  static FlAuthService create(){
+  static FlAuthApiService create() {
     final client = ChopperClient(
-      baseUrl: 'http://api.logger.fitness:80',
+      baseUrl: baseUrl,
       services: [
-        _$FlAuthService(),
+        _$FlAuthApiService(),
       ],
       converter: JsonConverter(),
     );
-    return _$FlAuthService(client);
+    return _$FlAuthApiService(client);
   }
-
 }
 
-// @ChopperApi(baseUrl: serverHost+'/types')
-// abstract class FlTypesService extends ChopperService {
+@ChopperApi(baseUrl: '/types')
+abstract class FlTypesApiService extends ChopperService {
+  // GET all
+  @Get(path: '/')
+  Future<Response> getAll();
 
-// }
+  // GET by id
+  @Get(path: '/')
+  Future<Response> getById(@Query('tp_id') tpId);
+
+  // GET by name
+  @Get(path: '/')
+  Future<Response> getByTpName(@Query('tpName') tpName);
+
+  // GET by description
+  @Get(path: '/')
+  Future<Response> getByDescription(@Query('description') description);
+
+  // POST
+  @Post(path: '/')
+  Future newType(@Body() FlType newType);
+
+  // PUT
+  @Put(path: '/')
+  Future updateType(@Body() FlType updateType);
+
+  // DELETE
+  @Delete(path: '/')
+  Future delete(@Query('tp_id') String tpId);
+
+  static FlTypesApiService create() {
+    final client = ChopperClient(
+      baseUrl: baseUrl,
+      services: [
+        _$FlTypesApiService(),
+      ],
+      converter: JsonConverter(),
+      interceptors: [
+        HeadersInterceptor({'Content-Type': 'application/json'}),
+        AuthHeadersInterceptor(),
+        (Response response) async {
+          if (response.statusCode == 401) {
+            AuthService.deleteAll();
+          }
+          return response;
+        }
+      ],
+    );
+    return _$FlTypesApiService(client);
+  }
+}
+
+class AuthHeadersInterceptor implements RequestInterceptor {
+  static const String HEADER = 'access-token';
+
+  @override
+  FutureOr<Request> onRequest(Request request) async {
+    // Map<String, String?> headers = request.headers;
+
+    try {
+      final String? jwt = await AuthService.getJwt();
+      return applyHeader(request, HEADER, jwt);
+    } finally {}
+  }
+}

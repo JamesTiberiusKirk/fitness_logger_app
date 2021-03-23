@@ -13,7 +13,7 @@ class FlLoadingPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Text(
-              'Linear progress indicator with a fixed color',
+              'Loading',
               style: Theme.of(context).textTheme.headline6,
             ),
             CircularProgressIndicator(
