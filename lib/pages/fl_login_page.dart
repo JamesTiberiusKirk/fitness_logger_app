@@ -66,6 +66,9 @@ class FlLoginFormState extends State<FlLoginForm> {
 
         if (loginAtt) {
           Navigator.of(context).pushReplacementNamed('/home');
+        } else {
+          c.hideCurrentSnackBar();
+          c.showSnackBar(SnackBar(content: Text('Incorrect email or password')));
         }
       } catch (err) {
         c.hideCurrentSnackBar();
@@ -102,5 +105,4 @@ class FlLoginFormState extends State<FlLoginForm> {
       onPressed: _onPressed,
     );
   }
-
 }

@@ -3,12 +3,21 @@ import 'package:fitness_logger_app/widgets/drawer.dart';
 import 'package:flutter/material.dart';
 
 class FlHomePage extends StatelessWidget {
-  Widget _buildCreateTypeButton(context) {
+  Widget _buildTypesButton(context) {
     return ElevatedButton(
       onPressed: () {
         navigatorKey.currentState!.pushNamed('/types');
       },
       child: Text('Types'),
+    );
+  }
+
+  Widget _buildTrackingGroupsButton(context) {
+    return ElevatedButton(
+      onPressed: () {
+        navigatorKey.currentState!.pushNamed('/groups');
+      },
+      child: Text('Workouts'),
     );
   }
 
@@ -21,7 +30,8 @@ class FlHomePage extends StatelessWidget {
         padding: EdgeInsets.all(40),
         child: Column(
           children: <Widget>[
-            _buildCreateTypeButton(context),
+            _buildTypesButton(context),
+            _buildTrackingGroupsButton(context),
           ],
         ),
       ),

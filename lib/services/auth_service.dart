@@ -6,8 +6,6 @@ import 'package:fitness_logger_app/router_generator.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StoreKeys {
   static final String jwt = 'JWT';
@@ -19,18 +17,26 @@ class AuthService {
   AuthService(this.flAuthApiService);
 
   Future<bool> login(User user) async {
+    print(user);
     try {
       var res = await flAuthApiService.login(user);
       if (res.statusCode == 200) {
+        print(res.body['jwt']);
         await storeJwt(res.body['jwt']);
         return Future.value(true);
       } else if (res.statusCode == 401) {
         return Future.value(false);
       } else {
+        print('error in else');
         var code = res.statusCode;
         return Future.error('Error from API: $code');
       }
-    } finally {}
+    } catch (err) {
+      print('error in catch');
+      print(err.toString());
+      return Future.error(err.toString());
+      // return Future.value(false);
+    }
   }
 
   static FutureBuilder authGuard({Widget? page}) {
@@ -48,33 +54,16 @@ class AuthService {
   }
 
   static Future<void> storeJwt(String jwt) async {
-    if (kIsWeb) {
-      SharedPreferences.setMockInitialValues({});
-      SharedPreferences storage = await SharedPreferences.getInstance();
-      await storage.setString(StoreKeys.jwt, jwt);
-      return;
-    }
     final storage = new FlutterSecureStorage();
     return storage.write(key: StoreKeys.jwt, value: jwt);
   }
 
   static Future<String?> getJwt() async {
-    if (kIsWeb) {
-      SharedPreferences.setMockInitialValues({});
-      SharedPreferences storage = await SharedPreferences.getInstance();
-      String? jwt = storage.getString(StoreKeys.jwt);
-      return Future.value(jwt);
-    }
     final storage = new FlutterSecureStorage();
     return storage.read(key: StoreKeys.jwt);
   }
 
   static Future deleteAll() async {
-    if (kIsWeb) {
-      SharedPreferences.setMockInitialValues({});
-      SharedPreferences storage = await SharedPreferences.getInstance();
-      return await storage.remove(StoreKeys.jwt);
-    }
     navigatorKey.currentState!.pushNamed('/');
     final storage = new FlutterSecureStorage();
     return await storage.deleteAll();

@@ -1,3 +1,4 @@
+import 'package:fitness_logger_app/pages/tracking_groups/fl_tracking_groups_list.dart';
 import 'package:fitness_logger_app/pages/types/fl_create_type_page.dart';
 import 'package:fitness_logger_app/pages/fl_home_page.dart';
 import 'package:fitness_logger_app/pages/fl_root_page.dart';
@@ -22,6 +23,8 @@ class RouterGenerator {
         return MaterialPageRoute(builder: (_) => FlTypesListPage());
       case '/types/create':
         return MaterialPageRoute(builder: (_) => FlCreateTypePage());
+      case '/groups':
+        return MaterialPageRoute(builder: (_) => FlTrackingGroupListPage());
       default:
         return _errorRoute();
     }

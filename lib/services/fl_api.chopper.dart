@@ -93,3 +93,70 @@ class _$FlTypesApiService extends FlTypesApiService {
     return client.send($request);
   }
 }
+
+class _$FlTGroupsApiService extends FlTGroupsApiService {
+  _$FlTGroupsApiService([ChopperClient? client]) {
+    if (client == null) return;
+    this.client = client;
+  }
+
+  final definitionType = FlTGroupsApiService;
+
+  Future<Response> getAll() {
+    final $url = '/tracking/group/';
+    final $request = Request('GET', $url, client.baseUrl);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> start(String notes) {
+    final $url = '/tracking/group/start/';
+    final $body = notes;
+    final $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> stop(String tgId) {
+    final $url = '/tracking/group/stop/';
+    final Map<String, dynamic> $params = {'tgId': tgId};
+    final $request = Request('POST', $url, client.baseUrl, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> updateGroup(FlGroup flGroup) {
+    final $url = '/tracking/group/';
+    final $body = flGroup;
+    final $request = Request('PUT', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> deleteGroup(String tgId) {
+    final $url = '/tracking/group/';
+    final Map<String, dynamic> $params = {'tgId': tgId};
+    final $request =
+        Request('DELETE', $url, client.baseUrl, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
+}
+
+class _$FlTPointsApiService extends FlTPointsApiService {
+  _$FlTPointsApiService([ChopperClient? client]) {
+    if (client == null) return;
+    this.client = client;
+  }
+
+  final definitionType = FlTPointsApiService;
+
+  Future<Response> getByTgId(String tgId) {
+    final $url = '/tracking/point/';
+    final Map<String, dynamic> $params = {'tgId': tgId};
+    final $request = Request('GET', $url, client.baseUrl, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> getByTpTypeId(String tpTypeId) {
+    final $url = '/tracking/point/';
+    final Map<String, dynamic> $params = {'tpTypeId': tpTypeId};
+    final $request = Request('GET', $url, client.baseUrl, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
+}
