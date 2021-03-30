@@ -1,6 +1,7 @@
 import 'package:fitness_logger_app/models/fl_tracking_group.dart';
 import 'package:fitness_logger_app/models/fl_tracking_point.dart';
 import 'package:fitness_logger_app/models/fl_type.dart';
+import 'package:fitness_logger_app/pages/fl_loading_page.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
 import 'package:fitness_logger_app/widgets/drawer.dart';
 import 'package:fitness_logger_app/widgets/fl_forms.dart';
@@ -107,32 +108,42 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
   _buildTrackingPointsList(FlTrackingPoint flTrackingPoint) {
     final flTypesApiService =
         Provider.of<FlTypesApiService>(context, listen: false);
-
-    var flTypeFuture = flTypesApiService.getById(flTrackingPoint.tpTypeId!);
-
     return FutureBuilder(
-      future: flTypeFuture,
+      future: flTypesApiService.getById(flTrackingPoint.tpTypeId!),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
         if (snapshot.hasError) return Text('Snapshot error ${snapshot.error}');
         if (!snapshot.hasData) return Text('Snapshot empty');
 
         FlType? flType = FlType.fromJson(snapshot.data!.body[0]);
         String title = flType.tpName!;
         String subtitle = 'Description ${flType.description}';
+        String dataString = 'default';
         if (flTrackingPoint.notes != null) {
           subtitle += '\nNotes: ${flTrackingPoint.notes!}';
         }
 
-        // need to get set data
-        // need to find out what type is it
         if (flTrackingPoint.data != null) {
+          // For set data
           if (flType.dataType == 'sets') {
-            subtitle += '\n\n';
+            // subtitle += '\n\nSets:';
+            dataString = 'Sets:';
             for (var dataJson in flTrackingPoint.data) {
               Set data = Set.fromJson(dataJson);
-              subtitle += (data.isDropset == 'true') ? ' ->' : ' |';
-              subtitle += '${data.reps}x${data.value}${flType.measurmentUnit}';
+              dataString += (data.isDropset == 'true') ? ' ->' : ' ';
+              dataString +=
+                  '${data.reps}x${data.value}${flType.measurmentUnit}';
+              dataString += (data.isDropset == 'true') ? '' : ' | ';
             }
+          } else if (flType.dataType == 'single-value') {
+            SingleValue sv = SingleValue.fromJson(flTrackingPoint.data);
+            print(sv.toJson().toString());
+            dataString = 'Single Value:';
+            dataString += '${sv.value}${flType.measurmentUnit} ';
           }
         }
 
@@ -143,6 +154,30 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                 ListTile(
                   title: Text(title),
                   subtitle: Text(subtitle),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(dataString),
+                    if (flType.dataType == 'sets')
+                      IconButton(
+                        icon: Icon(Icons.library_add),
+                        onPressed: () {
+                          // TODO: create a modal dialougue box
+                          // A different class probs
+                        },
+                      ),
+                    IconButton(
+                      icon: Icon(Icons.create),
+                      onPressed: () {
+                        // TODO: create a modal dialougue box
+                        // IF set data, need to make some flow for editing sets
+                        //  maybe fropdown selector for which set to edit
+                        //  in the modal add button to navigate to editing the type.
+                        // A different class probs
+                      },
+                    )
+                  ],
                 )
               ],
             ),
@@ -159,7 +194,8 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
 
   @override
   Widget build(BuildContext context) {
-    FlGroup flGroup = widget.flGroup!;
+    FlGroup? flGroup;
+    if (widget.flGroup != null) flGroup = widget.flGroup!;
 
     final flTPointsApiService =
         Provider.of<FlTPointsApiService>(context, listen: false);
@@ -178,18 +214,31 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: FutureBuilder(
-            future: flTPointsApiService.getByTgId(flGroup.tgId!),
+            future: flTPointsApiService.getByTgId(flGroup!.tgId!),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
               if (snapshot.hasData) {
                 var flTPs = snapshot.data!.body;
-                int? itemCount = (2 + flTPs.length).toInt();
+                int? itemCount = (3 + flTPs.length).toInt();
                 return ListView.builder(
                   itemCount: itemCount,
                   itemBuilder: (BuildContext context, int i) {
-                    if (i == 0) return _buildGroupInfo(flGroup);
-                    if (i == 1) return _buildNotes(flGroup);
+                    if (i == 0) return _buildGroupInfo(flGroup!);
+                    if (i == 1) return _buildNotes(flGroup!);
+                    if (i == 2)
+                      return Divider(
+                        color: Colors.grey,
+                        height: 10,
+                        thickness: 1,
+                        indent: 25,
+                        endIndent: 25,
+                      );
                     return _buildTrackingPointsList(
-                        FlTrackingPoint.fromJson(flTPs[i - 2]));
+                        FlTrackingPoint.fromJson(flTPs[i - 3]));
                   },
                 );
               } else if (snapshot.hasError) {
