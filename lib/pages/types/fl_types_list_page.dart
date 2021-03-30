@@ -34,20 +34,23 @@ class _FlTypesListPageState extends State<FlTypesListPage> {
 
           return RefreshIndicator(
             onRefresh: _refresh,
-            child: ListView.builder(
-              itemCount: flTypes.length,
-              itemBuilder: (BuildContext context, int i) {
-                FlType flType = FlType.fromJson(flTypes[i]);
-                return Column(
-                  children: [
-                    FlTypeItem(
-                      key: Key(flType.id!),
-                      flType: flType,
-                      updateTrigger: _updateTrigger,
-                    ),
-                  ],
-                );
-              },
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: ListView.builder(
+                itemCount: flTypes.length,
+                itemBuilder: (BuildContext context, int i) {
+                  FlType flType = FlType.fromJson(flTypes[i]);
+                  return Column(
+                    children: [
+                      FlTypeItem(
+                        key: Key(flType.id!),
+                        flType: flType,
+                        updateTrigger: _updateTrigger,
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           );
         } else if (snapshot.hasError) {

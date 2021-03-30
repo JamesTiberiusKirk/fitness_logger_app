@@ -213,39 +213,42 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
-        child: FutureBuilder(
-            future: flTPointsApiService.getByTgId(flGroup!.tgId!),
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              if (snapshot.hasData) {
-                var flTPs = snapshot.data!.body;
-                int? itemCount = (3 + flTPs.length).toInt();
-                return ListView.builder(
-                  itemCount: itemCount,
-                  itemBuilder: (BuildContext context, int i) {
-                    if (i == 0) return _buildGroupInfo(flGroup!);
-                    if (i == 1) return _buildNotes(flGroup!);
-                    if (i == 2)
-                      return Divider(
-                        color: Colors.grey,
-                        height: 10,
-                        thickness: 1,
-                        indent: 25,
-                        endIndent: 25,
-                      );
-                    return _buildTrackingPointsList(
-                        FlTrackingPoint.fromJson(flTPs[i - 3]));
-                  },
-                );
-              } else if (snapshot.hasError) {
-                return Text('Snapshot error\n${snapshot.error}');
-              }
-              return Text('outside the if');
-            }),
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: FutureBuilder(
+              future: flTPointsApiService.getByTgId(flGroup!.tgId!),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.hasData) {
+                  var flTPs = snapshot.data!.body;
+                  int? itemCount = (3 + flTPs.length).toInt();
+                  return ListView.builder(
+                    itemCount: itemCount,
+                    itemBuilder: (BuildContext context, int i) {
+                      if (i == 0) return _buildGroupInfo(flGroup!);
+                      if (i == 1) return _buildNotes(flGroup!);
+                      if (i == 2)
+                        return Divider(
+                          color: Colors.grey,
+                          height: 10,
+                          thickness: 1,
+                          indent: 25,
+                          endIndent: 25,
+                        );
+                      return _buildTrackingPointsList(
+                          FlTrackingPoint.fromJson(flTPs[i - 3]));
+                    },
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Snapshot error\n${snapshot.error}');
+                }
+                return Text('outside the if');
+              }),
+        ),
       ),
     );
   }
