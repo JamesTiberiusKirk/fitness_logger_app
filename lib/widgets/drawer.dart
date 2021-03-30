@@ -20,14 +20,8 @@ Widget generateDrawer() {
         ListTile(
           title: Text('Home'),
           onTap: () {
-            navigatorKey.currentState!.popUntil(ModalRoute.withName('/'));
-          },
-        ),
-        ListTile(
-          title: Text('Item 2'),
-          onTap: () {
-            // Update the state of the app.
-            // ...
+            // navigatorKey.currentState!.popUntil(ModalRoute.withName('/home'));
+            navigatorKey.currentState!.pushNamedAndRemoveUntil('/', ModalRoute.withName('/home'));
           },
         ),
         Column(
