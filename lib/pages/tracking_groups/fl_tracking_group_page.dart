@@ -10,6 +10,10 @@ import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+SnackBar toBeImplemented = SnackBar(
+  content: Text('To be implemented'),
+);
+
 class FlTrackingGroup extends StatefulWidget {
   FlTrackingGroup({required Key key, this.flGroup}) : super(key: key);
   final FlGroup? flGroup;
@@ -94,6 +98,8 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
             children: <Widget>[
               TextButton(
                 onPressed: () {
+                  ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(toBeImplemented);
                   // TODO: dialogue box with text field
                 },
                 child: Text('Edit'),
@@ -136,14 +142,13 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
               Set data = Set.fromJson(dataJson);
               dataString += (data.isDropset == 'true') ? ' ->' : ' ';
               dataString +=
-                  '${data.reps}x${data.value}${flType.measurmentUnit}';
+                  '${data.reps}x${data.value} ${flType.measurmentUnit}';
               dataString += (data.isDropset == 'true') ? '' : ' | ';
             }
           } else if (flType.dataType == 'single-value') {
             SingleValue sv = SingleValue.fromJson(flTrackingPoint.data);
-            print(sv.toJson().toString());
             dataString = 'Single Value:';
-            dataString += '${sv.value}${flType.measurmentUnit} ';
+            dataString += '${sv.value} ${flType.measurmentUnit} ';
           }
         }
 
@@ -154,31 +159,54 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                 ListTile(
                   title: Text(title),
                   subtitle: Text(subtitle),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(toBeImplemented);
+                    },
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(dataString),
-                    if (flType.dataType == 'sets')
+                Padding(
+                  padding: EdgeInsets.fromLTRB(15, 0, 20, 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          dataString,
+                          // overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (flType.dataType == 'sets')
+                        IconButton(
+                          icon: Icon(Icons.library_add),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context)
+                                .removeCurrentSnackBar();
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(toBeImplemented);
+                            // TODO: create a modal dialougue box
+                            // A different class probs
+                          },
+                        ),
                       IconButton(
-                        icon: Icon(Icons.library_add),
+                        icon: Icon(Icons.create),
                         onPressed: () {
+                          ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(toBeImplemented);
                           // TODO: create a modal dialougue box
+                          // IF set data, need to make some flow for editing sets
+                          //  maybe fropdown selector for which set to edit
+                          //  in the modal add button to navigate to editing the type.
                           // A different class probs
                         },
-                      ),
-                    IconButton(
-                      icon: Icon(Icons.create),
-                      onPressed: () {
-                        // TODO: create a modal dialougue box
-                        // IF set data, need to make some flow for editing sets
-                        //  maybe fropdown selector for which set to edit
-                        //  in the modal add button to navigate to editing the type.
-                        // A different class probs
-                      },
-                    )
-                  ],
-                )
+                      )
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -205,6 +233,12 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
       appBar: AppBar(
         title: Text('Workout'),
         actions: [
+          IconButton(
+              icon: Icon(Icons.library_add),
+              onPressed: () {
+                ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(toBeImplemented);
+              }),
           IconButton(
             icon: Icon(Icons.stop),
             onPressed: _stopTrigger,
