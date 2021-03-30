@@ -36,23 +36,26 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
           final flGroups = snapshot.data!.body;
           return RefreshIndicator(
             onRefresh: _refresh,
-            child: (flGroups.isEmpty)
-                ? Center(child: Text('Empty'))
-                : ListView.builder(
-                    itemCount: flGroups.length,
-                    itemBuilder: (BuildContext context, int i) {
-                      FlGroup flGroup = FlGroup.fromJson(flGroups[i]);
-                      return Column(
-                        children: [
-                          FlTrackingGroupListItem(
-                            key: Key(flGroup.tgId!),
-                            flGroup: flGroup,
-                            updateTrigger: _updateTrigger,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: (flGroups.isEmpty)
+                  ? Center(child: Text('Empty'))
+                  : ListView.builder(
+                      itemCount: flGroups.length,
+                      itemBuilder: (BuildContext context, int i) {
+                        FlGroup flGroup = FlGroup.fromJson(flGroups[i]);
+                        return Column(
+                          children: [
+                            FlTrackingGroupListItem(
+                              key: Key(flGroup.tgId!),
+                              flGroup: flGroup,
+                              updateTrigger: _updateTrigger,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+            ),
           );
         } else if (snapshot.hasError) {
           print(snapshot.error);
@@ -175,10 +178,12 @@ class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
                   child: Text('View'),
                   onPressed: () => {
                     navigatorKey.currentState!.push(
-                        MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                            FlTrackingGroup(key: Key(flGroup.tgId!),flGroup: flGroup,),
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => FlTrackingGroup(
+                          key: Key(flGroup.tgId!),
+                          flGroup: flGroup,
                         ),
+                      ),
                     ),
                   },
                 ),
