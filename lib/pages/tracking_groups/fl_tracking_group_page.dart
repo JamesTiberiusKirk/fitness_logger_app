@@ -1,12 +1,10 @@
 import 'package:fitness_logger_app/models/fl_tracking_group.dart';
 import 'package:fitness_logger_app/models/fl_tracking_point.dart';
 import 'package:fitness_logger_app/models/fl_type.dart';
-import 'package:fitness_logger_app/pages/fl_loading_page.dart';
+import 'package:fitness_logger_app/router_generator.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
 import 'package:fitness_logger_app/widgets/drawer.dart';
-import 'package:fitness_logger_app/widgets/fl_forms.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +13,11 @@ SnackBar toBeImplemented = SnackBar(
 );
 
 class FlTrackingGroup extends StatefulWidget {
-  FlTrackingGroup({required Key key, this.flGroup}) : super(key: key);
+  FlTrackingGroup(
+      {required Key key, this.flGroup, required this.updateParentClb})
+      : super(key: key);
   final FlGroup? flGroup;
+  final updateParentClb;
 
   @override
   _FlTrackingGroupState createState() => _FlTrackingGroupState();
@@ -24,10 +25,46 @@ class FlTrackingGroup extends StatefulWidget {
 
 class _FlTrackingGroupState extends State<FlTrackingGroup> {
   void _stopTrigger() async {
-    // TODO: implement dialogoue box
-    final flTGroupApiService =
-        Provider.of<FlTGroupsApiService>(context, listen: false);
-    await flTGroupApiService.stop(widget.flGroup!.tgId!);
+    // set up the buttons
+    Widget cancelButton = TextButton(
+      child: Text('Cancel'),
+      onPressed: () {
+        navigatorKey.currentState!.pop();
+      },
+    );
+    Widget continueButton = TextButton(
+      child: Text('Stop Workout'),
+      onPressed: () async {
+        try {
+          final flTGroupsApiService =
+              Provider.of<FlTGroupsApiService>(context, listen: false);
+          await flTGroupsApiService.stop(widget.flGroup!.tgId!);
+          navigatorKey.currentState!.pop();
+          widget.updateParentClb();
+        } catch (err) {
+          final c = ScaffoldMessenger.of(context);
+          c.removeCurrentSnackBar();
+          c.showSnackBar(SnackBar(content: Text(err.toString())));
+          navigatorKey.currentState!.pop();
+        }
+      },
+    );
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text('Are you sure?'),
+      content: Text('Are you sure you want to stop this workout?'),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 
   _buildGroupInfo(FlGroup flGroup) {
@@ -239,10 +276,11 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                 ScaffoldMessenger.of(context).removeCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(toBeImplemented);
               }),
-          IconButton(
-            icon: Icon(Icons.stop),
-            onPressed: _stopTrigger,
-          )
+          if (flGroup!.endTime == null)
+            IconButton(
+              icon: Icon(Icons.stop),
+              onPressed: _stopTrigger,
+            )
         ],
       ),
       body: RefreshIndicator(
@@ -250,7 +288,7 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
         child: Padding(
           padding: EdgeInsets.all(10),
           child: FutureBuilder(
-              future: flTPointsApiService.getByTgId(flGroup!.tgId!),
+              future: flTPointsApiService.getByTgId(flGroup.tgId!),
               builder: (BuildContext context, AsyncSnapshot snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(

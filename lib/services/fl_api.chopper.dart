@@ -108,9 +108,9 @@ class _$FlTGroupsApiService extends FlTGroupsApiService {
     return client.send<dynamic, dynamic>($request);
   }
 
-  Future<Response> start(String notes) {
+  Future<Response> start(Map<String, String> body) {
     final $url = '/tracking/group/start/';
-    final $body = notes;
+    final $body = body;
     final $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<dynamic, dynamic>($request);
   }

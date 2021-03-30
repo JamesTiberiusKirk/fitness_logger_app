@@ -31,7 +31,7 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
       future: flTypesApiService.getAll(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
           final flGroups = snapshot.data!.body;
           return RefreshIndicator(
@@ -66,6 +66,71 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
     );
   }
 
+  _newWorkoutModal() {
+    final _formKey = GlobalKey<FormState>();
+    String? notes;
+
+    // set up the buttons
+    Widget cancelButton = TextButton(
+      child: Text('Cancel'),
+      onPressed: () {
+        navigatorKey.currentState!.pop();
+      },
+    );
+    Widget continueButton = TextButton(
+      child: Text('New Workput'),
+      onPressed: () async {
+        if (!(_formKey.currentState!.validate())) return;
+        _formKey.currentState!.save();
+        final flTGroupsApiService =
+            Provider.of<FlTGroupsApiService>(context, listen: false);
+
+        final c = ScaffoldMessenger.of(context);
+        try {
+          await flTGroupsApiService.start({'notes': notes!});
+          c.removeCurrentSnackBar();
+          c.showSnackBar(SnackBar(content: Text('Started')));
+          navigatorKey.currentState!.pop();
+        } catch (err) {
+          c.removeCurrentSnackBar();
+          c.showSnackBar(SnackBar(content: Text(err.toString())));
+          navigatorKey.currentState!.pop();
+        }
+        _refresh();
+      },
+    );
+
+    Widget notesField = TextFormField(
+      validator: (String? value) {
+        if (value!.isEmpty) return 'Notes cannot be empty';
+        return null;
+      },
+      onSaved: (String? value) {
+        notes = value;
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog dialog = AlertDialog(
+      title: Text('New workout'),
+      content: notesField,
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Form(
+          key: _formKey,
+          child: dialog,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,9 +140,7 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.library_add),
-            onPressed: () {
-              // Navigator.of(context).pushNamed('/groups/create');
-            },
+            onPressed: _newWorkoutModal,
           )
         ],
       ),
@@ -99,7 +162,11 @@ class FlTrackingGroupListItem extends StatefulWidget {
 }
 
 class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
-  _showAlertDialog(BuildContext context, FlGroup flGroup) {
+  _updateTrigger() {
+    setState(() {});
+  }
+
+  _showDeleteAlertDialog(BuildContext context, FlGroup flGroup) {
     // set up the buttons
     Widget cancelButton = TextButton(
       child: Text('Cancel'),
@@ -123,6 +190,7 @@ class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
           c.showSnackBar(SnackBar(content: Text(err.toString())));
           navigatorKey.currentState!.pop();
         }
+        _updateTrigger();
       },
     );
     // set up the AlertDialog
@@ -180,9 +248,9 @@ class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
                     navigatorKey.currentState!.push(
                       MaterialPageRoute(
                         builder: (BuildContext context) => FlTrackingGroup(
-                          key: Key(flGroup.tgId!),
-                          flGroup: flGroup,
-                        ),
+                            key: Key(flGroup.tgId!),
+                            flGroup: flGroup,
+                            updateParentClb: _updateTrigger),
                       ),
                     ),
                   },
@@ -204,7 +272,7 @@ class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
                 TextButton(
                     child: Text('Delete'),
                     onPressed: () {
-                      return _showAlertDialog(context, flGroup);
+                      return _showDeleteAlertDialog(context, flGroup);
                     }),
                 SizedBox(width: 8),
               ],

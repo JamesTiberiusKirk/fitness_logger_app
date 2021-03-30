@@ -96,7 +96,7 @@ abstract class FlTGroupsApiService extends ChopperService {
   // GET group by notes?
   
   @Post(path: '/start/')
-  Future<Response> start(@Body() String notes);
+  Future<Response> start(@Body() Map<String, String> body);
   
   @Post(path: '/stop/')
   Future<Response> stop(@Query('tgId') String tgId);
