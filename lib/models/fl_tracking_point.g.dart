@@ -13,7 +13,7 @@ FlTrackingPoint _$FlTrackingPointFromJson(Map<String, dynamic> json) {
     tpTypeId: json['tpTypeId'] as String?,
     tgId: json['tgId'] as String?,
     notes: json['notes'] as String?,
-    tpNr: json['tpNr'] as String?,
+    tpNr: json['tpNr'] as int?,
     data: json['data'],
   );
 }

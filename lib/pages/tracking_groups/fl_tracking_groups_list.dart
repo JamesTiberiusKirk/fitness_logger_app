@@ -7,6 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+
+///*****************************
+///
+///
+///
+/// This is the Workouts screen.
+///
+///
+///
+/// ****************************
+
 class FlTrackingGroupListPage extends StatefulWidget {
   // FlTrackingGroupListPage({Key key}) : super(key: key);
 
@@ -34,6 +45,7 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
           final flGroups = snapshot.data!.body;
+          final flGroupsR = flGroups.reversed.toList();
           return RefreshIndicator(
             onRefresh: _refresh,
             child: Padding(
@@ -41,9 +53,10 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
               child: (flGroups.isEmpty)
                   ? Center(child: Text('Empty'))
                   : ListView.builder(
-                      itemCount: flGroups.length,
+                      itemCount: flGroupsR.length,
                       itemBuilder: (BuildContext context, int i) {
-                        FlGroup flGroup = FlGroup.fromJson(flGroups[i]);
+                        FlGroup flGroup = FlGroup.fromJson(
+                            flGroupsR[i].cast<String, dynamic>());
                         return Column(
                           children: [
                             FlTrackingGroupListItem(
@@ -87,6 +100,7 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
 
         final c = ScaffoldMessenger.of(context);
         try {
+          print('sadfasdfasdf ${notes!}');
           await flTGroupsApiService.start({'notes': notes!});
           c.removeCurrentSnackBar();
           c.showSnackBar(SnackBar(content: Text('Started')));
@@ -214,7 +228,7 @@ class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
   @override
   Widget build(BuildContext context) {
     FlGroup flGroup = widget.flGroup;
-    String startDate = DateFormat('yMd')
+    String startDate = DateFormat('EEE, MMM d, ''yy','en_US')
         .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime));
     String subtitle = flGroup.notes!;
 

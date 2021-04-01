@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:chopper/chopper.dart';
 import 'package:fitness_logger_app/models/fl_tracking_group.dart';
+import 'package:fitness_logger_app/models/fl_tracking_point.dart';
 import 'package:fitness_logger_app/models/user.dart';
 import 'package:fitness_logger_app/services/auth_service.dart';
 import 'package:fitness_logger_app/models/fl_type.dart';
@@ -8,7 +9,7 @@ import 'package:fitness_logger_app/models/fl_type.dart';
 part 'fl_api.chopper.dart';
 
 const String baseUrl = 'http://api.logger.fitness:80';
- 
+
 @ChopperApi(baseUrl: '/auth')
 abstract class FlAuthApiService extends ChopperService {
   @Post(path: '/login')
@@ -85,28 +86,28 @@ abstract class FlTypesApiService extends ChopperService {
   }
 }
 
-
 @ChopperApi(baseUrl: '/tracking/group')
 abstract class FlTGroupsApiService extends ChopperService {
-
   @Get(path: '/')
   Future<Response> getAll();
 
   // GET group by id
+  @Get(path: '/')
+  Future<Response> getById(@Query('tgId') String tgId);
+
   // GET group by notes?
-  
+
   @Post(path: '/start/')
   Future<Response> start(@Body() Map<String, String> body);
-  
+
   @Post(path: '/stop/')
   Future<Response> stop(@Query('tgId') String tgId);
-  
+
   @Put(path: '/')
   Future<Response> updateGroup(@Body() FlGroup flGroup);
 
   @Delete(path: '/')
   Future<Response> deleteGroup(@Query('tgId') String tgId);
-
 
   static FlTGroupsApiService create() {
     final client = ChopperClient(
@@ -130,24 +131,26 @@ abstract class FlTGroupsApiService extends ChopperService {
   }
 }
 
-
 @ChopperApi(baseUrl: '/tracking/point')
 abstract class FlTPointsApiService extends ChopperService {
-
-  // GET / trackingPoints 
+  // GET / trackingPoints
   // Query optional tpTypeId
   // Future<Response> get({@Query('tgId') String? tgId, @Query('tpTypeId') String? tpTypeId});
-  @Get(path:'/')
+  @Get(path: '/')
   Future<Response> getByTgId(@Query('tgId') String tgId);
 
-  @Get(path:'/')
+  @Get(path: '/')
   Future<Response> getByTpTypeId(@Query('tpTypeId') String tpTypeId);
 
-  // POST / tracking point 
+  // POST / tracking point
   // Body: tp_type_id, tg_id, notes, tp_nr (NEED TO CHANGE THIS)
-  
+  @Post(path: '/')
+  Future<Response> createTrackingPoint(@Body() FlTrackingPoint trackingPoint);
+
   // DELETE / tracking point
-  
+  @Delete(path: '/')
+  Future<Response> deleteTrackingPoint(@Query('tp_id') String tpId);
+
   // POST /set
   // ...
 
@@ -175,7 +178,6 @@ abstract class FlTPointsApiService extends ChopperService {
     return _$FlTPointsApiService(client);
   }
 }
-
 
 class AuthHeadersInterceptor implements RequestInterceptor {
   static const String HEADER = 'access-token';

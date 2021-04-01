@@ -108,6 +108,13 @@ class _$FlTGroupsApiService extends FlTGroupsApiService {
     return client.send<dynamic, dynamic>($request);
   }
 
+  Future<Response> getById(String tgId) {
+    final $url = '/tracking/group/';
+    final Map<String, dynamic> $params = {'tgId': tgId};
+    final $request = Request('GET', $url, client.baseUrl, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
+
   Future<Response> start(Map<String, String> body) {
     final $url = '/tracking/group/start/';
     final $body = body;
@@ -157,6 +164,21 @@ class _$FlTPointsApiService extends FlTPointsApiService {
     final $url = '/tracking/point/';
     final Map<String, dynamic> $params = {'tpTypeId': tpTypeId};
     final $request = Request('GET', $url, client.baseUrl, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> createTrackingPoint(FlTrackingPoint trackingPoint) {
+    final $url = '/tracking/point/';
+    final $body = trackingPoint;
+    final $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> deleteTrackingPoint(String tpId) {
+    final $url = '/tracking/point/';
+    final Map<String, dynamic> $params = {'tp_id': tpId};
+    final $request =
+        Request('DELETE', $url, client.baseUrl, parameters: $params);
     return client.send<dynamic, dynamic>($request);
   }
 }

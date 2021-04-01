@@ -20,7 +20,7 @@ class FlCreateTypePageState extends State<FlCreateTypePage> {
 
   String? _tpName;
   String? _description;
-  String? _dataType; // EMUN Drop down or togle type switch
+  String? _dataType;
   int? _dataTypeRadio;
   String? _measurmentUnit;
 

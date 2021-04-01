@@ -1,12 +1,23 @@
 import 'package:fitness_logger_app/models/fl_tracking_group.dart';
 import 'package:fitness_logger_app/models/fl_tracking_point.dart';
 import 'package:fitness_logger_app/models/fl_type.dart';
+import 'package:fitness_logger_app/pages/tracking_groups/tracking_point/f_tracking_point_form_page.dart';
 import 'package:fitness_logger_app/router_generator.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
 import 'package:fitness_logger_app/widgets/drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+///*****************************
+///
+///
+///
+/// This is the individual workout screen.
+///
+///
+///
+/// ****************************
 
 SnackBar toBeImplemented = SnackBar(
   content: Text('To be implemented'),
@@ -24,6 +35,41 @@ class FlTrackingGroup extends StatefulWidget {
 }
 
 class _FlTrackingGroupState extends State<FlTrackingGroup> {
+  FlGroup? flGroup;
+  final refreshkey = GlobalKey<RefreshIndicatorState>();
+
+  Future<void> _refresh() async {
+    // TODO: This refresh doesnt properly work
+    //  - trying to make it refresh on any action.
+    //
+
+    final service = Provider.of<FlTGroupsApiService>(context, listen: false);
+    refreshkey.currentState?.show(atTop: true);
+    try {
+      final flGroupResp = await service.getById(flGroup!.tgId!);
+
+      setState(() => flGroup = FlGroup.fromJson(flGroupResp.body[0]));
+      return Future.value();
+    } catch (err) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error ${err.toString()}')));
+    }
+
+
+    // The following solution doesnt seem to work.
+    // final service = Provider.of<FlTGroupsApiService>(context, listen: false);
+    // refreshkey.currentState?.show(atTop: true);
+    // service.getById(flGroup!.tgId!).then((value) {
+    //   flGroup = FlGroup.fromJson(value.body[0]);
+    // }).onError((err, stackTrace) {
+    //   ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    //   ScaffoldMessenger.of(context)
+    //       .showSnackBar(SnackBar(content: Text('Error ${err.toString()}')));
+    // });
+    // return Future.value();
+  }
+
   void _stopTrigger() async {
     // set up the buttons
     Widget cancelButton = TextButton(
@@ -45,6 +91,7 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
           final c = ScaffoldMessenger.of(context);
           c.removeCurrentSnackBar();
           c.showSnackBar(SnackBar(content: Text(err.toString())));
+          await _refresh();
           navigatorKey.currentState!.pop();
         }
       },
@@ -198,10 +245,21 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                   subtitle: Text(subtitle),
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(toBeImplemented);
+                    onPressed: () async {
+                      final service = Provider.of<FlTPointsApiService>(context,
+                          listen: false);
+                      try {
+                        await service
+                            .deleteTrackingPoint(flTrackingPoint.tpId!);
+                        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Deleted')));
+                        _refresh();
+                      } catch (err) {
+                        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(err.toString())));
+                      }
                     },
                   ),
                 ),
@@ -252,14 +310,8 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
     );
   }
 
-  Future<void> _refresh() {
-    setState(() {});
-    return Future.value();
-  }
-
   @override
   Widget build(BuildContext context) {
-    FlGroup? flGroup;
     if (widget.flGroup != null) flGroup = widget.flGroup!;
 
     final flTPointsApiService =
@@ -273,8 +325,16 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
           IconButton(
               icon: Icon(Icons.library_add),
               onPressed: () {
-                ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(toBeImplemented);
+                // ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                // ScaffoldMessenger.of(context).showSnackBar(toBeImplemented);
+                navigatorKey.currentState!.push(
+                  MaterialPageRoute(builder: (BuildContext context) {
+                    return FlTrackingPointFormPage(
+                      tgId: flGroup!.tgId!.toString(),
+                      parentRefreshTrigger: _refresh,
+                    );
+                  }),
+                );
               }),
           if (flGroup!.endTime == null)
             IconButton(
@@ -284,11 +344,12 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
         ],
       ),
       body: RefreshIndicator(
+        key: refreshkey,
         onRefresh: _refresh,
         child: Padding(
           padding: EdgeInsets.all(10),
           child: FutureBuilder(
-              future: flTPointsApiService.getByTgId(flGroup.tgId!),
+              future: flTPointsApiService.getByTgId(flGroup!.tgId!),
               builder: (BuildContext context, AsyncSnapshot snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(

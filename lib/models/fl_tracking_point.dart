@@ -21,7 +21,7 @@ class FlTrackingPoint {
   String? notes;
 
   @JsonKey(name: 'tpNr')
-  String? tpNr;
+  int? tpNr;
 
 
   @JsonKey(name: 'data')
