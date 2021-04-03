@@ -6,16 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class FlCreateTypePage extends StatefulWidget {
-  FlCreateTypePage({Key key = const Key('Type Form'), this.flType})
+  FlCreateTypePage({Key key = const Key('Type Form'), this.flType, this.parentRefresh})
       : super(key: key);
+  final Function? parentRefresh;
   final FlType? flType;
   @override
-  FlCreateTypePageState createState() {
-    return FlCreateTypePageState();
+  _FlCreateTypePageState createState() {
+    return _FlCreateTypePageState();
   }
 }
 
-class FlCreateTypePageState extends State<FlCreateTypePage> {
+class _FlCreateTypePageState extends State<FlCreateTypePage> {
   final _formKey = GlobalKey<FormState>();
 
   String? _tpName;
@@ -101,6 +102,7 @@ class FlCreateTypePageState extends State<FlCreateTypePage> {
         c.hideCurrentSnackBar();
         c.showSnackBar(SnackBar(content: Text('Updated')));
         Navigator.of(context).pop();
+        if (widget.parentRefresh != null) widget.parentRefresh!();
       } catch (err) {
         c.hideCurrentSnackBar();
         c.showSnackBar(SnackBar(content: Text(err.toString())));
