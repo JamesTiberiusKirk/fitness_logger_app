@@ -1,7 +1,7 @@
 import 'package:fitness_logger_app/models/fl_tracking_group.dart';
 import 'package:fitness_logger_app/models/fl_tracking_point.dart';
 import 'package:fitness_logger_app/models/fl_type.dart';
-import 'package:fitness_logger_app/pages/tracking_groups/tracking_point/f_tracking_point_form_page.dart';
+import 'package:fitness_logger_app/pages/tracking_groups/tracking_point/fl_tracking_point_form_page.dart';
 import 'package:fitness_logger_app/router_generator.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
 import 'package:fitness_logger_app/widgets/drawer.dart';
@@ -39,10 +39,6 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
   final refreshkey = GlobalKey<RefreshIndicatorState>();
 
   Future<void> _refresh() async {
-    // TODO: This refresh doesnt properly work
-    //  - trying to make it refresh on any action.
-    //
-
     final service = Provider.of<FlTGroupsApiService>(context, listen: false);
     refreshkey.currentState?.show(atTop: true);
     try {
@@ -55,19 +51,6 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error ${err.toString()}')));
     }
-
-
-    // The following solution doesnt seem to work.
-    // final service = Provider.of<FlTGroupsApiService>(context, listen: false);
-    // refreshkey.currentState?.show(atTop: true);
-    // service.getById(flGroup!.tgId!).then((value) {
-    //   flGroup = FlGroup.fromJson(value.body[0]);
-    // }).onError((err, stackTrace) {
-    //   ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    //   ScaffoldMessenger.of(context)
-    //       .showSnackBar(SnackBar(content: Text('Error ${err.toString()}')));
-    // });
-    // return Future.value();
   }
 
   void _stopTrigger() async {

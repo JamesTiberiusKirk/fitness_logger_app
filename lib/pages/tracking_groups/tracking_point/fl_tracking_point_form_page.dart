@@ -7,12 +7,18 @@ import 'package:fitness_logger_app/widgets/fl_forms.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../router_generator.dart';
+import '../../types/fl_create_type_page.dart';
+
 class FlTrackingPointFormPage extends StatefulWidget {
-  FlTrackingPointFormPage({Key key = const Key('Point Form'), required this.tgId, required this.parentRefreshTrigger})
+  FlTrackingPointFormPage(
+      {Key key = const Key('Point Form'),
+      required this.tgId,
+      required this.parentRefreshTrigger})
       : super(key: key);
   String tgId;
   final parentRefreshTrigger;
-  
+
   @override
   _FlTrackingPointFormPageState createState() =>
       _FlTrackingPointFormPageState();
@@ -29,7 +35,7 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: generateDrawer(),
+      // drawer: generateDrawer(),
       appBar: AppBar(
         title: Text('New Tracking Point'),
       ),
@@ -37,10 +43,14 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
         padding: EdgeInsets.all(40),
         child: Center(
           child: _buildForm(),
-          // child: Text('asda'),
         ),
       ),
     );
+  }
+
+  Future<void> _refresh() async {
+    setState((){});
+    return Future.value();
   }
 
   _buildForm() {
@@ -124,9 +134,18 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
     // Push create type page
     return ElevatedButton(
       onPressed: () {
-        ScaffoldMessenger.of(context).removeCurrentSnackBar();
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('yet to be done')));
+        // ScaffoldMessenger.of(context).removeCurrentSnackBar();
+        // ScaffoldMessenger.of(context)
+        //     .showSnackBar(SnackBar(content: Text('yet to be done')));
+        navigatorKey.currentState!.push(
+          MaterialPageRoute(
+            builder: (BuildContext context) {
+              return FlCreateTypePage(
+                parentRefresh: _refresh,
+              );
+            },
+          ),
+        );
       },
       child: Text('Add new type'),
     );
@@ -145,15 +164,21 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
     // make api call to the server with type FlTrackingPoint
     return ElevatedButton(
       onPressed: () async {
-        print('submit');
-        print(_chosenType);
-        print(_notes);
+        _formKey.currentState!.save();
+
+        if (_chosenType == null) {
+          ScaffoldMessenger.of(context).removeCurrentSnackBar();
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Please chose a type')));
+          return;
+        }
 
         final service =
             Provider.of<FlTPointsApiService>(context, listen: false);
 
         dynamic sv = [];
-        if (isSingleValue) sv = SingleValue(value: _singleValue!);
+        if (isSingleValue && _singleValue != null)
+          sv = SingleValue(value: _singleValue!);
 
         FlTrackingPoint flTp = FlTrackingPoint(
           tgId: widget.tgId,
@@ -168,7 +193,6 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
               .showSnackBar(SnackBar(content: Text('Updating')));
           navigatorKey.currentState!.pop();
           widget.parentRefreshTrigger();
-
         } catch (err) {
           ScaffoldMessenger.of(context).removeCurrentSnackBar();
           ScaffoldMessenger.of(context)
