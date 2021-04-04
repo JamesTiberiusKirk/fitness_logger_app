@@ -45,7 +45,7 @@ Set _$SetFromJson(Map<String, dynamic> json) {
     reps: json['reps'] as String,
     value: json['value'] as String,
     isDropset: json['isDropset'] as String,
-    setNr: json['setNr'] as int,
+    setNr: json['setNr'] as int?,
   );
 }
 

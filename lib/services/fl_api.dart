@@ -133,9 +133,8 @@ abstract class FlTGroupsApiService extends ChopperService {
 
 @ChopperApi(baseUrl: '/tracking/point')
 abstract class FlTPointsApiService extends ChopperService {
+
   // GET / trackingPoints
-  // Query optional tpTypeId
-  // Future<Response> get({@Query('tgId') String? tgId, @Query('tpTypeId') String? tpTypeId});
   @Get(path: '/')
   Future<Response> getByTgId(@Query('tgId') String tgId);
 
@@ -143,7 +142,6 @@ abstract class FlTPointsApiService extends ChopperService {
   Future<Response> getByTpTypeId(@Query('tpTypeId') String tpTypeId);
 
   // POST / tracking point
-  // Body: tp_type_id, tg_id, notes, tp_nr (NEED TO CHANGE THIS)
   @Post(path: '/')
   Future<Response> createTrackingPoint(@Body() FlTrackingPoint trackingPoint);
 
@@ -152,10 +150,12 @@ abstract class FlTPointsApiService extends ChopperService {
   Future<Response> deleteTrackingPoint(@Query('tp_id') String tpId);
 
   // POST /set
-  // ...
+  @Post(path: '/set/')
+  Future<Response> addSet(@Query('tpId') String tpId, @Body() Set setToAdd);
 
   // PUT /set
-  // ...
+  @Post(path: '/set/')
+  Future<Response> updateSet(@Query('tpId') String tpId, @Body() Set setToAdd);
 
   static FlTPointsApiService create() {
     final client = ChopperClient(

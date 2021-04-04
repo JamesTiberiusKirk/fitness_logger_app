@@ -181,4 +181,22 @@ class _$FlTPointsApiService extends FlTPointsApiService {
         Request('DELETE', $url, client.baseUrl, parameters: $params);
     return client.send<dynamic, dynamic>($request);
   }
+
+  Future<Response> addSet(String tpId, Set setToAdd) {
+    final $url = '/tracking/point/set/';
+    final Map<String, dynamic> $params = {'tpId': tpId};
+    final $body = setToAdd;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  Future<Response> updateSet(String tpId, Set setToAdd) {
+    final $url = '/tracking/point/set/';
+    final Map<String, dynamic> $params = {'tpId': tpId};
+    final $body = setToAdd;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, parameters: $params);
+    return client.send<dynamic, dynamic>($request);
+  }
 }

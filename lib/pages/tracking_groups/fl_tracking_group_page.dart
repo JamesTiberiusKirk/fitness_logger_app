@@ -1,3 +1,4 @@
+import 'package:fitness_logger_app/helper_funcs/validators.dart';
 import 'package:fitness_logger_app/models/fl_tracking_group.dart';
 import 'package:fitness_logger_app/models/fl_tracking_point.dart';
 import 'package:fitness_logger_app/models/fl_type.dart';
@@ -5,6 +6,7 @@ import 'package:fitness_logger_app/pages/tracking_groups/tracking_point/fl_track
 import 'package:fitness_logger_app/router_generator.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
 import 'package:fitness_logger_app/widgets/drawer.dart';
+import 'package:fitness_logger_app/widgets/fl_forms.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +39,80 @@ class FlTrackingGroup extends StatefulWidget {
 class _FlTrackingGroupState extends State<FlTrackingGroup> {
   FlGroup? flGroup;
   final refreshkey = GlobalKey<RefreshIndicatorState>();
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.flGroup != null) flGroup = widget.flGroup!;
+
+    final flTPointsApiService =
+        Provider.of<FlTPointsApiService>(context, listen: false);
+
+    return Scaffold(
+      drawer: generateDrawer(),
+      appBar: AppBar(
+        title: Text('Workout'),
+        actions: [
+          IconButton(
+              icon: Icon(Icons.library_add),
+              onPressed: () {
+                navigatorKey.currentState!.push(
+                  MaterialPageRoute(builder: (BuildContext context) {
+                    return FlTrackingPointFormPage(
+                      tgId: flGroup!.tgId!.toString(),
+                      parentRefreshTrigger: _refresh,
+                    );
+                  }),
+                );
+              }),
+          if (flGroup!.endTime == null)
+            IconButton(
+              icon: Icon(Icons.stop),
+              onPressed: _stopTrigger,
+            )
+        ],
+      ),
+      body: RefreshIndicator(
+        key: refreshkey,
+        onRefresh: _refresh,
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: FutureBuilder(
+              future: flTPointsApiService.getByTgId(flGroup!.tgId!),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.hasData) {
+                  var flTPs = snapshot.data!.body;
+                  int? itemCount = (3 + flTPs.length).toInt();
+                  return ListView.builder(
+                    itemCount: itemCount,
+                    itemBuilder: (BuildContext context, int i) {
+                      if (i == 0) return _buildGroupInfo(flGroup!);
+                      if (i == 1) return _buildNotes(flGroup!);
+                      if (i == 2)
+                        return Divider(
+                          color: Colors.grey,
+                          height: 10,
+                          thickness: 1,
+                          indent: 25,
+                          endIndent: 25,
+                        );
+                      return _buildTrackingPointsList(
+                          FlTrackingPoint.fromJson(flTPs[i - 3]));
+                    },
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Snapshot error\n${snapshot.error}');
+                }
+                return Text('outside the if');
+              }),
+        ),
+      ),
+    );
+  }
 
   Future<void> _refresh() async {
     final service = Provider.of<FlTGroupsApiService>(context, listen: false);
@@ -229,20 +305,53 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
                     onPressed: () async {
-                      final service = Provider.of<FlTPointsApiService>(context,
-                          listen: false);
-                      try {
-                        await service
-                            .deleteTrackingPoint(flTrackingPoint.tpId!);
-                        ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Deleted')));
-                        _refresh();
-                      } catch (err) {
-                        ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(err.toString())));
-                      }
+                      // set up the buttons
+                      Widget cancelButton = TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          navigatorKey.currentState!.pop();
+                        },
+                      );
+                      Widget continueButton = TextButton(
+                        child: Text('Delete exercise'),
+                        onPressed: () async {
+                          final service = Provider.of<FlTPointsApiService>(
+                              context,
+                              listen: false);
+                          try {
+                            await service
+                                .deleteTrackingPoint(flTrackingPoint.tpId!);
+                            ScaffoldMessenger.of(context)
+                                .removeCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Deleted')));
+                            await _refresh();
+                            navigatorKey.currentState!.pop();
+                          } catch (err) {
+                            ScaffoldMessenger.of(context)
+                                .removeCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(err.toString())));
+                          }
+                        },
+                      );
+                      // set up the AlertDialog
+                      AlertDialog alert = AlertDialog(
+                        title: Text('Are you sure?'),
+                        content:
+                            Text('Are you sure you want to delete this exercise?'),
+                        actions: [
+                          cancelButton,
+                          continueButton,
+                        ],
+                      );
+                      // show the dialog
+                      return showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return alert;
+                        },
+                      );
                     },
                   ),
                 ),
@@ -261,12 +370,7 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                         IconButton(
                           icon: Icon(Icons.library_add),
                           onPressed: () {
-                            ScaffoldMessenger.of(context)
-                                .removeCurrentSnackBar();
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(toBeImplemented);
-                            // TODO: create a modal dialougue box
-                            // A different class probs
+                            _buildPopupSetForm(flTrackingPoint.tpId!, flType);
                           },
                         ),
                       IconButton(
@@ -293,79 +397,97 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (widget.flGroup != null) flGroup = widget.flGroup!;
+  _buildPopupSetForm(String tpId, FlType flType) {
+    // set up the buttons
+    Widget cancelButton = TextButton(
+      child: Text('Cancel'),
+      onPressed: () {
+        navigatorKey.currentState!.pop();
+      },
+    );
 
-    final flTPointsApiService =
-        Provider.of<FlTPointsApiService>(context, listen: false);
+    String? reps;
+    String? resistance;
+    bool isDropsetBool = false;
+    String isDropset = isDropsetBool.toString();
+    final formKey = GlobalKey<FormState>();
 
-    return Scaffold(
-      drawer: generateDrawer(),
-      appBar: AppBar(
-        title: Text('Workout'),
-        actions: [
-          IconButton(
-              icon: Icon(Icons.library_add),
-              onPressed: () {
-                // ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                // ScaffoldMessenger.of(context).showSnackBar(toBeImplemented);
-                navigatorKey.currentState!.push(
-                  MaterialPageRoute(builder: (BuildContext context) {
-                    return FlTrackingPointFormPage(
-                      tgId: flGroup!.tgId!.toString(),
-                      parentRefreshTrigger: _refresh,
-                    );
-                  }),
-                );
-              }),
-          if (flGroup!.endTime == null)
-            IconButton(
-              icon: Icon(Icons.stop),
-              onPressed: _stopTrigger,
-            )
-        ],
-      ),
-      body: RefreshIndicator(
-        key: refreshkey,
-        onRefresh: _refresh,
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: FutureBuilder(
-              future: flTPointsApiService.getByTgId(flGroup!.tgId!),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                if (snapshot.hasData) {
-                  var flTPs = snapshot.data!.body;
-                  int? itemCount = (3 + flTPs.length).toInt();
-                  return ListView.builder(
-                    itemCount: itemCount,
-                    itemBuilder: (BuildContext context, int i) {
-                      if (i == 0) return _buildGroupInfo(flGroup!);
-                      if (i == 1) return _buildNotes(flGroup!);
-                      if (i == 2)
-                        return Divider(
-                          color: Colors.grey,
-                          height: 10,
-                          thickness: 1,
-                          indent: 25,
-                          endIndent: 25,
-                        );
-                      return _buildTrackingPointsList(
-                          FlTrackingPoint.fromJson(flTPs[i - 3]));
-                    },
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('Snapshot error\n${snapshot.error}');
-                }
-                return Text('outside the if');
-              }),
+    Widget repField = flFormField(
+      context,
+      label: 'Reps',
+      saveClb: (value) => reps = value,
+      validateClb: numberValidator,
+    );
+    Widget valueFiled = flFormField(
+      context,
+      label: 'Value in ${flType.measurmentUnit}',
+      saveClb: (value) => resistance = value,
+      validateClb: numberValidator,
+    );
+    Widget isDropsetCheckbox = Row(
+      children: [
+        Checkbox(
+          value: isDropsetBool,
+          onChanged: (value) {
+            isDropsetBool = value!;
+            isDropset = value.toString();
+          },
+        ),
+        Text('Dropset'),
+      ],
+    );
+
+    Widget continueButton = TextButton(
+      child: Text('Add'),
+      onPressed: () async {
+        if (!formKey.currentState!.validate()) return;
+        formKey.currentState!.save();
+        print('sets');
+        print(reps);
+        print(resistance);
+        try {
+          final service =
+              Provider.of<FlTPointsApiService>(context, listen: false);
+          final setToAdd =
+              Set(reps: reps!, value: resistance!, isDropset: isDropset);
+          print(setToAdd.toJson().toString());
+          final res = await service.addSet(tpId, setToAdd);
+          if (res.body != 'Added') throw Error();
+          navigatorKey.currentState!.pop();
+          _refresh();
+        } catch (err) {
+          final c = ScaffoldMessenger.of(context);
+          c.removeCurrentSnackBar();
+          c.showSnackBar(SnackBar(content: Text(err.toString())));
+          await _refresh();
+          navigatorKey.currentState!.pop();
+        }
+      },
+    );
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text('Add a set'),
+      content: Form(
+        key: formKey,
+        child: Column(
+          children: [
+            repField,
+            valueFiled,
+            isDropsetCheckbox,
+          ],
         ),
       ),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 }

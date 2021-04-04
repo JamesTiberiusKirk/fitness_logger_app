@@ -68,9 +68,9 @@ class Set {
   String isDropset;
 
   @JsonKey(name: 'setNr')
-  int setNr;
+  int? setNr;
 
-  Set({required this.reps, required this.value, required this.isDropset, required this.setNr});
+  Set({required this.reps, required this.value, required this.isDropset, this.setNr});
 
   factory Set.fromJson(Map<String, dynamic> json) => _$SetFromJson(json);
 

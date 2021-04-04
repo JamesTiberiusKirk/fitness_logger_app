@@ -1,8 +1,9 @@
 import 'package:fitness_logger_app/models/fl_tracking_point.dart';
+
 import 'package:fitness_logger_app/models/fl_type.dart';
 import 'package:fitness_logger_app/router_generator.dart';
+import 'package:fitness_logger_app/router_generator.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
-import 'package:fitness_logger_app/widgets/drawer.dart';
 import 'package:fitness_logger_app/widgets/fl_forms.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,7 @@ class FlTrackingPointFormPage extends StatefulWidget {
       required this.tgId,
       required this.parentRefreshTrigger})
       : super(key: key);
-  String tgId;
+  final String tgId;
   final parentRefreshTrigger;
 
   @override
@@ -29,6 +30,7 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
   String? _chosenType;
   String? _notes;
   List<FlType>? flTypes = [];
+  FlType? activeFlType;
   bool isSingleValue = false;
   String? _singleValue;
 
@@ -49,26 +51,52 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
   }
 
   Future<void> _refresh() async {
-    setState((){});
+    setState(() {});
     return Future.value();
   }
 
   _buildForm() {
     return Form(
       key: _formKey,
+      // child: Expanded(
       child: Column(
         children: [
-          _buildTypeDropdown(),
+          Align(
+            alignment: Alignment.topLeft,
+            child: _buildTypeDropdown(),
+          ),
+          if (activeFlType != null)
+            Align(
+              alignment: Alignment.topLeft,
+              child: _buildActiveFlTypeInfoText(),
+            ),
           if (isSingleValue) _buildSingleValueField(),
-          Padding(
-            padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+          Align(
+            alignment: Alignment.topLeft,
             child: _buildAddTypeButton(),
           ),
-          _buildNotesField(context),
-          _buildSubmitButton(),
+          Align(
+            alignment: Alignment.topLeft,
+            child: _buildNotesField(context),
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: _buildSubmitButton(),
+            ),
+          ),
         ],
       ),
+      // ),
     );
+  }
+
+  _buildActiveFlTypeInfoText() {
+    String toDisplay = '';
+    toDisplay = 'Description: ${activeFlType!.description!}\n';
+    toDisplay += 'Measurment Unit: ${activeFlType!.measurmentUnit!}\n';
+    toDisplay += 'Data Type: ${activeFlType!.dataType!}\n';
+    return Text(toDisplay);
   }
 
   _buildTypeDropdown() {
@@ -102,19 +130,19 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
           style: TextStyle(color: Colors.black),
           items: itemList,
           hint: Text(
-            "Please choose an tracking point type",
+            'Please choose an tracking point type',
           ),
           onChanged: (value) {
             setState(() {
               _chosenType = value;
-              FlType? type;
+              // FlType? type;
               flTypes!.forEach((element) {
                 if (element.id == value) {
-                  type = element;
+                  activeFlType = element;
                 }
               });
-              if (type != null)
-                isSingleValue = type!.dataType == 'single-value';
+              if (activeFlType != null)
+                isSingleValue = activeFlType!.dataType == 'single-value';
             });
           },
         );
@@ -134,9 +162,6 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
     // Push create type page
     return ElevatedButton(
       onPressed: () {
-        // ScaffoldMessenger.of(context).removeCurrentSnackBar();
-        // ScaffoldMessenger.of(context)
-        //     .showSnackBar(SnackBar(content: Text('yet to be done')));
         navigatorKey.currentState!.push(
           MaterialPageRoute(
             builder: (BuildContext context) {
