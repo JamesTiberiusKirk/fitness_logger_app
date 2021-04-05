@@ -182,7 +182,7 @@ class _$FlTPointsApiService extends FlTPointsApiService {
     return client.send<dynamic, dynamic>($request);
   }
 
-  Future<Response> addSet(String tpId, Set setToAdd) {
+  Future<Response> addSet(String tpId, FlSet setToAdd) {
     final $url = '/tracking/point/set/';
     final Map<String, dynamic> $params = {'tpId': tpId};
     final $body = setToAdd;
@@ -191,7 +191,7 @@ class _$FlTPointsApiService extends FlTPointsApiService {
     return client.send<dynamic, dynamic>($request);
   }
 
-  Future<Response> updateSet(String tpId, Set setToAdd) {
+  Future<Response> updateSet(String tpId, FlSet setToAdd) {
     final $url = '/tracking/point/set/';
     final Map<String, dynamic> $params = {'tpId': tpId};
     final $body = setToAdd;

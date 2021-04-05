@@ -107,7 +107,8 @@ class _FlTrackingGroupListPageState extends State<FlTrackingGroupListPage> {
           navigatorKey.currentState!.pop();
         } catch (err) {
           c.removeCurrentSnackBar();
-          c.showSnackBar(SnackBar(content: Text(err.toString())));
+          // c.showSnackBar(SnackBar(content: Text(err.toString())));
+          c.showSnackBar(SnackBar(content: Text('Error: Make sure to end previous workouts before starting a new one.')));
           navigatorKey.currentState!.pop();
         }
         _refresh();
@@ -229,11 +230,11 @@ class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
   Widget build(BuildContext context) {
     FlGroup flGroup = widget.flGroup;
     String startDate = DateFormat('EEE, MMM d, ''yy','en_US')
-        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime));
+        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime!));
     String subtitle = flGroup.notes!;
 
     String startTime = DateFormat('H:m')
-        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime));
+        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime!));
     subtitle += '\nStarted: $startTime';
 
     if (flGroup.endTime != null) {
@@ -269,20 +270,20 @@ class _FlTrackingGroupListItemState extends State<FlTrackingGroupListItem> {
                     ),
                   },
                 ),
-                TextButton(
-                  child: Text('Edit'),
-                  onPressed: () {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (BuildContext context) {
-                    //       // return FlCreateTypePage(flType: flType);
-                    //     },
-                    //   ),
-                    // );
-                  },
-                ),
-                SizedBox(width: 8),
+                // TextButton(
+                //   child: Text('Edit'),
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (BuildContext context) {
+                //           // return FlCreateTypePage(flType: flType);
+                //         },
+                //       ),
+                //     );
+                //   },
+                // ),
+                // SizedBox(width: 8),
                 TextButton(
                     child: Text('Delete'),
                     onPressed: () {

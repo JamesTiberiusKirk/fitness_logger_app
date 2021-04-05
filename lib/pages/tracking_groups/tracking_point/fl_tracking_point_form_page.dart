@@ -1,15 +1,11 @@
 import 'package:fitness_logger_app/models/fl_tracking_point.dart';
-
 import 'package:fitness_logger_app/models/fl_type.dart';
-import 'package:fitness_logger_app/router_generator.dart';
+import 'package:fitness_logger_app/pages/types/fl_create_type_page.dart';
 import 'package:fitness_logger_app/router_generator.dart';
 import 'package:fitness_logger_app/services/fl_api.dart';
 import 'package:fitness_logger_app/widgets/fl_forms.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../../router_generator.dart';
-import '../../types/fl_create_type_page.dart';
 
 class FlTrackingPointFormPage extends StatefulWidget {
   FlTrackingPointFormPage(
@@ -37,7 +33,6 @@ class _FlTrackingPointFormPageState extends State<FlTrackingPointFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // drawer: generateDrawer(),
       appBar: AppBar(
         title: Text('New Tracking Point'),
       ),

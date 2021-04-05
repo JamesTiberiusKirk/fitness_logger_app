@@ -10,7 +10,7 @@ class FlGroup {
   String? tgId;
 
   @JsonKey(name: 'startTime')
-  int startTime;
+  int? startTime;
 
   @JsonKey(name: 'endTime')
   int? endTime;
@@ -20,7 +20,7 @@ class FlGroup {
 
   FlGroup({
     this.tgId,
-    required this.startTime,
+    this.startTime,
     this.endTime,
     this.notes
   });

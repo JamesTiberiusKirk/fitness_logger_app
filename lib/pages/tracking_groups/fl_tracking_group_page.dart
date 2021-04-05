@@ -41,6 +41,13 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
   final refreshkey = GlobalKey<RefreshIndicatorState>();
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    flGroup = widget.flGroup!;
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.flGroup != null) flGroup = widget.flGroup!;
 
@@ -120,7 +127,12 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
     try {
       final flGroupResp = await service.getById(flGroup!.tgId!);
 
-      setState(() => flGroup = FlGroup.fromJson(flGroupResp.body[0]));
+      setState(
+        () {
+          flGroup = FlGroup.fromJson(flGroupResp.body[0]);
+          print(flGroup!.toJson().toString());
+        },
+      );
       return Future.value();
     } catch (err) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -190,11 +202,11 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
     }
 
     startTime = DateFormat('H:m')
-        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime));
+        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime!));
     subtitle += startTime;
 
     date = DateFormat('yMd')
-        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime));
+        .format(DateTime.fromMillisecondsSinceEpoch(flGroup.startTime!));
     title += date;
 
     return Card(
@@ -240,10 +252,62 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               TextButton(
+                // edit button for the fl-group notes
                 onPressed: () {
-                  ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(toBeImplemented);
-                  // TODO: dialogue box with text field
+                  final formKey = GlobalKey<FormState>();
+                  String? notes;
+                  // set up the buttons
+                  Widget cancelButton = TextButton(
+                    child: Text('Cancel'),
+                    onPressed: () {
+                      navigatorKey.currentState!.pop();
+                    },
+                  );
+                  Widget continueButton = TextButton(
+                    child: Text('Save'),
+                    onPressed: () async {
+                      formKey.currentState!.save();
+                      try {
+                        final service = Provider.of<FlTGroupsApiService>(
+                          context,
+                          listen: false,
+                        );
+
+                        final update =
+                            FlGroup(tgId: flGroup.tgId!, notes: notes!);
+                        print(update.toJson().toString());
+                        final res = await service.updateGroup(update);
+                        print(res.body);
+                        navigatorKey.currentState!.pop();
+                        await _refresh();
+                      } catch (err) {
+                        final c = ScaffoldMessenger.of(context);
+                        c.removeCurrentSnackBar();
+                        c.showSnackBar(SnackBar(content: Text(err.toString())));
+                        navigatorKey.currentState!.pop();
+                      }
+                    },
+                  );
+                  // set up the AlertDialog
+                  AlertDialog alert = AlertDialog(
+                    title: Text('Notes'),
+                    content: Form(
+                      key: formKey,
+                      child: flFormField(context,
+                          saveClb: (String? value) => notes = value!),
+                    ),
+                    actions: [
+                      cancelButton,
+                      continueButton,
+                    ],
+                  );
+                  // show the dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return alert;
+                    },
+                  );
                 },
                 child: Text('Edit'),
               ),
@@ -269,7 +333,8 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
         if (!snapshot.hasData) return Text('Snapshot empty');
 
         FlType? flType = FlType.fromJson(snapshot.data!.body[0]);
-        String title = flType.tpName!;
+        // String title = '${flTrackingPoint.tpNr}. ${flType.tpName!}';
+        String title = '${flType.tpName!}';
         String subtitle = 'Description ${flType.description}';
         String dataString = 'default';
         if (flTrackingPoint.notes != null) {
@@ -282,15 +347,15 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
             // subtitle += '\n\nSets:';
             dataString = 'Sets:';
             for (var dataJson in flTrackingPoint.data) {
-              Set data = Set.fromJson(dataJson);
-              dataString += (data.isDropset == 'true') ? ' ->' : ' ';
+              FlSet data = FlSet.fromJson(dataJson);
+              if (dataJson != flTrackingPoint.data[0])
+                dataString += (data.isDropset == 'true') ? '->' : ' | ';
               dataString +=
-                  '${data.reps}x${data.value} ${flType.measurmentUnit}';
-              dataString += (data.isDropset == 'true') ? '' : ' | ';
+                  '${data.reps}x${data.value}${flType.measurmentUnit}';
             }
           } else if (flType.dataType == 'single-value') {
             SingleValue sv = SingleValue.fromJson(flTrackingPoint.data);
-            dataString = 'Single Value:';
+            dataString = 'Single Value: ';
             dataString += '${sv.value} ${flType.measurmentUnit} ';
           }
         }
@@ -338,8 +403,8 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                       // set up the AlertDialog
                       AlertDialog alert = AlertDialog(
                         title: Text('Are you sure?'),
-                        content:
-                            Text('Are you sure you want to delete this exercise?'),
+                        content: Text(
+                            'Are you sure you want to delete this exercise?'),
                         actions: [
                           cancelButton,
                           continueButton,
@@ -363,7 +428,6 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
                       Expanded(
                         child: Text(
                           dataString,
-                          // overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (flType.dataType == 'sets')
@@ -397,97 +461,138 @@ class _FlTrackingGroupState extends State<FlTrackingGroup> {
     );
   }
 
-  _buildPopupSetForm(String tpId, FlType flType) {
-    // set up the buttons
-    Widget cancelButton = TextButton(
-      child: Text('Cancel'),
-      onPressed: () {
-        navigatorKey.currentState!.pop();
+  _buildPopupSetForm(String tpId, FlType flType) async {
+    return await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        // set up the buttons
+        return AlertDialog(
+          title: Text('Add a set'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return FlSetForm(
+                flGroup: flGroup!,
+                flType: flType,
+                parentRefeshTrigger: _refresh,
+                flTpId: tpId,
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                navigatorKey.currentState!.pop();
+              },
+            ),
+          ],
+        );
       },
     );
+  }
+}
 
-    String? reps;
-    String? resistance;
-    bool isDropsetBool = false;
-    String isDropset = isDropsetBool.toString();
-    final formKey = GlobalKey<FormState>();
+class FlSetForm extends StatefulWidget {
+  FlSetForm({
+    Key? key,
+    required this.flGroup,
+    required this.flType,
+    required this.parentRefeshTrigger,
+    required this.flTpId,
+  }) : super(key: key);
+  final FlGroup flGroup;
+  final FlType flType;
+  final String flTpId;
+  final Function parentRefeshTrigger;
 
-    Widget repField = flFormField(
+  @override
+  _FlSetFormState createState() => _FlSetFormState();
+}
+
+class _FlSetFormState extends State<FlSetForm> {
+  final formKey = new GlobalKey<FormState>();
+  String? _reps;
+  String? _resistance;
+  bool _isDropsetBool = false;
+
+  _buildRepsField() {
+    return flFormField(
       context,
       label: 'Reps',
-      saveClb: (value) => reps = value,
+      saveClb: (value) => _reps = value,
       validateClb: numberValidator,
     );
-    Widget valueFiled = flFormField(
-      context,
-      label: 'Value in ${flType.measurmentUnit}',
-      saveClb: (value) => resistance = value,
-      validateClb: numberValidator,
-    );
-    Widget isDropsetCheckbox = Row(
-      children: [
-        Checkbox(
-          value: isDropsetBool,
-          onChanged: (value) {
-            isDropsetBool = value!;
-            isDropset = value.toString();
-          },
-        ),
-        Text('Dropset'),
-      ],
-    );
+  }
 
-    Widget continueButton = TextButton(
-      child: Text('Add'),
+  _buildValueField() {
+    return flFormField(
+      context,
+      label: 'Value in ${widget.flType.measurmentUnit}',
+      saveClb: (value) => _resistance = value,
+      validateClb: numberValidator,
+    );
+  }
+
+  _buildIsDropsetCheckBox() {
+    return CheckboxListTile(
+      value: _isDropsetBool,
+      title: Text('Dropset'),
+      onChanged: (value) {
+        setState(() {
+          _isDropsetBool = value!;
+        });
+      },
+    );
+  }
+
+  _buildSaveButton() {
+    return flFormButton(
+      context,
+      formKey,
+      label: 'Save',
       onPressed: () async {
         if (!formKey.currentState!.validate()) return;
         formKey.currentState!.save();
-        print('sets');
-        print(reps);
-        print(resistance);
         try {
           final service =
               Provider.of<FlTPointsApiService>(context, listen: false);
-          final setToAdd =
-              Set(reps: reps!, value: resistance!, isDropset: isDropset);
+          final setToAdd = FlSet(
+              reps: _reps!,
+              value: _resistance!,
+              isDropset: _isDropsetBool.toString());
           print(setToAdd.toJson().toString());
-          final res = await service.addSet(tpId, setToAdd);
+          print(widget.flTpId);
+          final res = await service.addSet(widget.flTpId, setToAdd);
+          print(res.body.toString());
           if (res.body != 'Added') throw Error();
           navigatorKey.currentState!.pop();
-          _refresh();
+          await widget.parentRefeshTrigger();
         } catch (err) {
           final c = ScaffoldMessenger.of(context);
           c.removeCurrentSnackBar();
           c.showSnackBar(SnackBar(content: Text(err.toString())));
-          await _refresh();
-          navigatorKey.currentState!.pop();
+          // await widget.parentRefeshTrigger();
+          // navigatorKey.currentState!.pop();
         }
       },
     );
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text('Add a set'),
-      content: Form(
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 260,
+      child: Form(
         key: formKey,
         child: Column(
           children: [
-            repField,
-            valueFiled,
-            isDropsetCheckbox,
+            _buildRepsField(),
+            _buildValueField(),
+            _buildIsDropsetCheckBox(),
+            _buildSaveButton(),
           ],
         ),
       ),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
-    );
-    // show the dialog
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
     );
   }
 }

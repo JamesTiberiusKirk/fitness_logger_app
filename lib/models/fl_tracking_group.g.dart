@@ -9,7 +9,7 @@ part of 'fl_tracking_group.dart';
 FlGroup _$FlGroupFromJson(Map<String, dynamic> json) {
   return FlGroup(
     tgId: json['tgId'] as String?,
-    startTime: json['startTime'] as int,
+    startTime: json['startTime'] as int?,
     endTime: json['endTime'] as int?,
     notes: json['notes'] as String?,
   );

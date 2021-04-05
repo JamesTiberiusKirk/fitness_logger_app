@@ -40,8 +40,8 @@ Map<String, dynamic> _$SingleValueToJson(SingleValue instance) =>
       'value': instance.value,
     };
 
-Set _$SetFromJson(Map<String, dynamic> json) {
-  return Set(
+FlSet _$FlSetFromJson(Map<String, dynamic> json) {
+  return FlSet(
     reps: json['reps'] as String,
     value: json['value'] as String,
     isDropset: json['isDropset'] as String,
@@ -49,7 +49,7 @@ Set _$SetFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$SetToJson(Set instance) => <String, dynamic>{
+Map<String, dynamic> _$FlSetToJson(FlSet instance) => <String, dynamic>{
       'reps': instance.reps,
       'value': instance.value,
       'isDropset': instance.isDropset,

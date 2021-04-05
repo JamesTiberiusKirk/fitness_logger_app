@@ -57,7 +57,7 @@ class SingleValue{
 }
 
 @JsonSerializable()
-class Set {
+class FlSet {
   @JsonKey(name: 'reps')
   String reps;
 
@@ -70,10 +70,10 @@ class Set {
   @JsonKey(name: 'setNr')
   int? setNr;
 
-  Set({required this.reps, required this.value, required this.isDropset, this.setNr});
+  FlSet({required this.reps, required this.value, required this.isDropset, this.setNr});
 
-  factory Set.fromJson(Map<String, dynamic> json) => _$SetFromJson(json);
+  factory FlSet.fromJson(Map<String, dynamic> json) => _$FlSetFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SetToJson(this);
+  Map<String, dynamic> toJson() => _$FlSetToJson(this);
 
 }

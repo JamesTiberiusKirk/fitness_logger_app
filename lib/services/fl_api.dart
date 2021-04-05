@@ -151,11 +151,11 @@ abstract class FlTPointsApiService extends ChopperService {
 
   // POST /set
   @Post(path: '/set/')
-  Future<Response> addSet(@Query('tpId') String tpId, @Body() Set setToAdd);
+  Future<Response> addSet(@Query('tpId') String tpId, @Body() FlSet setToAdd);
 
   // PUT /set
   @Post(path: '/set/')
-  Future<Response> updateSet(@Query('tpId') String tpId, @Body() Set setToAdd);
+  Future<Response> updateSet(@Query('tpId') String tpId, @Body() FlSet setToAdd);
 
   static FlTPointsApiService create() {
     final client = ChopperClient(
