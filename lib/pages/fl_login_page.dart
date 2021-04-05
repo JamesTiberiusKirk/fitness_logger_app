@@ -81,7 +81,7 @@ class FlLoginFormState extends State<FlLoginForm> {
   Widget _buildEmailField(BuildContext context) {
     return flFormField(
       context,
-      label: 'Email Update',
+      label: 'Email',
       validateClb: emailValidator,
       saveClb: _saveEmail,
     );
